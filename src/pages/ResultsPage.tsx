@@ -1,11 +1,21 @@
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { buildMockReport } from "../utils/mockReport";
+import { mockScanner } from "../services/scanner/mockScanner";
 import type { ScanReport } from "../types/report";
+import { SafetyScoreCard } from "../components/SafetyScoreCard";
+import { AnalysisSectionCard } from "../components/AnalysisSectionCard";
 
 function getSingleParam(params: URLSearchParams, key: string) {
   const value = params.get(key);
   return value?.trim() || "";
+}
+
+type PageProps = {
+  children: React.ReactNode;
+};
+
+function Page({ children }: PageProps) {
+  return <main className="page">{children}</main>;
 }
 
 export function ResultsPage() {
@@ -19,60 +29,96 @@ export function ResultsPage() {
     () => getSingleParam(searchParams, "target"),
     [searchParams],
   );
-  const report: ScanReport | null = useMemo(() => {
-    if (!target) return null;
-    return buildMockReport(target);
+
+  const [report, setReport] = useState<ScanReport | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function run() {
+      if (!target) return;
+
+      setReport(null);
+      setIsLoading(true);
+      setError(null);
+
+      try {
+        const result = await mockScanner.scan({ target });
+        if (!cancelled) setReport(result);
+      } catch {
+        if (!cancelled) setError("Scan failed. Please try again.");
+      } finally {
+        if (!cancelled) setIsLoading(false);
+      }
+    }
+
+    run();
+
+    return () => {
+      cancelled = true;
+    };
   }, [target]);
 
   const hasRequiredParams = chain.length > 0 && target.length > 0;
 
   if (!hasRequiredParams) {
     return (
-      <main>
+      <Page>
         <h1>Scan Results</h1>
         <p>Missing scan details. Go back and submit a token address.</p>
-      </main>
+      </Page>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <Page>
+        <h1>Scan Results</h1>
+        <p>Scanning...</p>
+      </Page>
+    );
+  }
+
+  if (error) {
+    return (
+      <Page>
+        <h1>Scan Results</h1>
+        <p>{error}</p>
+      </Page>
+    );
+  }
+
+  if (!report) {
+    return (
+      <Page>
+        <h1>Scan Results</h1>
+        <p>No report available.</p>
+      </Page>
     );
   }
 
   return (
-    <main>
-      <h1>Scan Results</h1>
+    <div className="min-h-screen bg-gradient-to-b from-[#0a1628] via-[#0d1f3a] to-[#0a1628]">
+      <main className="max-w-6xl mx-auto px-6 py-12">
+        <h1 className="text-4xl text-red-500">Scan Results</h1>
 
-      <dl>
-        <div>
-          <dt>Chain</dt>
-          <dd>{chain}</dd>
-        </div>
+        <p>
+          <strong>Token:</strong> {report.tokenName} ({report.tokenSymbol})
+        </p>
+        <SafetyScoreCard
+          score={report.safetyScore}
+          label={report.safetyLabel}
+          summary={report.summary}
+        />
 
-        <div>Target</div>
-        <div>{target}</div>
-      </dl>
-
-      {report && (
-        <>
-          <section>
-            <h2>Safety Score</h2>
-            <p>
-              {report.safetyScore} / 100 — <strong>{report.safetyLabel}</strong>
-            </p>
-            <p>{report.summary}</p>
-          </section>
-
+        <div className="grid">
           {report.sections.map((section) => (
-            <section key={section.title}>
-              <h3>{section.title}</h3>
-              <ul>
-                {section.items.map((item) => (
-                  <li key={item.label}>
-                    {item.label}: {item.status.text}
-                  </li>
-                ))}
-              </ul>
-            </section>
+            <AnalysisSectionCard key={section.title} section={section} />
           ))}
-        </>
-      )}
-    </main>
+        </div>
+      </main>
+    </div>
   );
 }

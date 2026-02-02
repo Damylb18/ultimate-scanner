@@ -27,18 +27,25 @@ export function ScanForm({ onSubmit, isLoading = false }: ScanFormProps) {
   }
 
   return (
-    <form onSubmit={handleSubmit}>
-      <label>
-        Solana Token Address
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <label className="block">
+        <span className="block text-slate-200 text-sm mb-2">
+          Solana Token Address
+        </span>
         <input
           value={target}
           onChange={(e) => setTarget(e.target.value)}
-          placeholder="Paste Solana Token Address"
+          placeholder="Paste Solana token address"
           disabled={isLoading}
+          className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-slate-100 placeholder:text-slate-400 outline-none focus:border-cyan-400/40"
         />
       </label>
 
-      <button type="submit" disabled={!canSubmit}>
+      <button
+        type="submit"
+        disabled={!canSubmit}
+        className="w-full rounded-xl bg-gradient-to-r from-cyan-500 to-blue-500 px-5 py-3 font-medium text-white disabled:opacity-50"
+      >
         {isLoading ? "Scanning..." : "Scan Token"}
       </button>
     </form>
