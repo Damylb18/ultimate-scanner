@@ -74,19 +74,31 @@ export function ResultsPage() {
 
   if (isLoading) {
     return (
-      <Page>
-        <h1>Scan Results</h1>
-        <p>Scanning...</p>
-      </Page>
+      <div className="min-h-screen bg-gradient-to-b from-[#0a1628] via-[#0d1f3a] to-[#0a1628]">
+        <main className="max-w-7xl mx-auto px-6 py-12">
+          <h1 className="text-4xl text-white mb-6">Scan Results</h1>
+
+          <div className="rounded-2xl border border-cyan-500/20 bg-white/5 p-8 text-center backdrop-blur-sm">
+            <p className="text-slate-300 text-lg animate-pulse">
+              Scanning token...
+            </p>
+          </div>
+        </main>
+      </div>
     );
   }
 
   if (error) {
     return (
-      <Page>
-        <h1>Scan Results</h1>
-        <p>{error}</p>
-      </Page>
+      <div className="min-h-screen bg-gradient-to-b from-[#0a1628] via-[#0d1f3a] to-[#0a1628]">
+        <main className="max-w-7xl mx-auto px-6 py-12">
+          <h1 className="text-4xl text-white mb-6">Scan Results</h1>
+
+          <div className="rounded-2xl border border-red-500/30 bg-red-500/10 p-8 text-center">
+            <p className="text-red-300">{error}</p>
+          </div>
+        </main>
+      </div>
     );
   }
 

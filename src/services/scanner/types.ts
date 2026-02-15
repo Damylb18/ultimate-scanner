@@ -1,9 +1,9 @@
 import type { ScanReport } from "../../types/report";
 
-export type ScanTokenInput = {
+export type ScanRequest = {
     target: string
 }
 
 export type Scanner = {
-    scan: (input: ScanTokenInput) => Promise<ScanReport>
+    scan: (input: ScanRequest) => Promise<ScanReport>
 }
