@@ -1,9 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { mockScanner } from "../services/scanner/mockScanner";
+import { scanner } from "../services/scanner/orchestrator";
 import type { ScanReport } from "../types/report";
 import { SafetyScoreCard } from "../components/SafetyScoreCard";
 import { AnalysisSectionCard } from "../components/AnalysisSectionCard";
+import { isAppError } from "../services/errors/guards";
+import { toUserMessage } from "../services/errors/toUserMessage";
 
 function getSingleParam(params: URLSearchParams, key: string) {
   const value = params.get(key);
@@ -45,10 +47,13 @@ export function ResultsPage() {
       setError(null);
 
       try {
-        const result = await mockScanner.scan({ target });
+        const result = await scanner.scan({ target });
         if (!cancelled) setReport(result);
-      } catch {
-        if (!cancelled) setError("Scan failed. Please try again.");
+      } catch (e) {
+        if (!cancelled) {
+          if (isAppError(e)) setError(toUserMessage(e));
+          else setError("Something went wrong. Please try again.");
+        }
       } finally {
         if (!cancelled) setIsLoading(false);
       }
