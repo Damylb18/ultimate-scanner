@@ -1,6 +1,6 @@
 export type Chain = 'solana'
 
 export type ScanRequest = {
-    chain: Chain
+    chain?: Chain
     target: string
 }
